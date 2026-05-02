@@ -412,7 +412,52 @@ using JSON instead?" — that debate is closed.
 
 ---
 
-## 12. When to Start a Fresh Session
+## 13. After a Project — Refine
+
+Once you've done 3+ sessions on a project, run:
+
+```bash
+claude-init refine
+# alias: claude-init rf
+
+# Output:
+#   ━━━ Refine Mode ━━━
+#   → Collecting project data...
+#     Sessions: 5 | Errors: 3 | Decisions: 4 | Files: 12
+#
+#   ✓ Generated → .claude/REFINE_PROMPT.md
+#
+#   NEXT STEPS:
+#   1. Open .claude/REFINE_PROMPT.md
+#   2. Paste into https://claude.ai/new
+#   3. Review suggestions, apply what makes sense
+#   4. Run claude-init ck to log the refinement
+```
+
+This collects everything that happened — session logs, all errors, all decisions, FILES.md — and
+generates a structured prompt packed with your real project history.
+
+Paste it into **Claude.ai** (fresh conversation). Claude analyzes it and returns:
+
+- Specific rules to add/tighten/remove from **AGENT.md** based on drift patterns
+- New red lines for **RULES.md** based on what friction actually occurred
+- Missing decisions for **MEMORY.md**
+- Stronger prevention rules for **ERRORS.md**
+- Phase structure improvements for next time
+- What should have been in your original **prompt.md**
+
+Every suggestion is grounded in what actually happened, not generic advice.
+You review and apply what makes sense — takes 10-15 minutes, improves every future project.
+
+> **When to run it:**
+> - After a project completes
+> - After a rough phase with multiple errors
+> - When you notice the same correction loop repeating
+> - At the start of a similar new project (refine the old one, copy .claude/ as a template)
+
+---
+
+## 14. When to Start a Fresh Session
 
 Context grows every turn. Signs it's time for a new session:
 
@@ -442,8 +487,9 @@ Back to full speed in one message.
 | `claude-init` | — | Generate .claude/ scaffold from prompt.md |
 | `claude-init --minimal` | `-m` | Lighter scaffold (4 files, no RULES/ERRORS/FILES) |
 | `claude-init --force` | `-f` | Overwrite existing .claude/ without prompting |
-| `claude-init checkpoint` | `ck` | Interactive session closer — updates STATE, MEMORY, ERRORS |
+| `claude-init checkpoint` | `ck` | Interactive session closer — updates STATE, MEMORY, ERRORS, FILES |
 | `claude-init status` | `st` | Print current phase, blockers, session count |
+| `claude-init refine` | `rf` | Generate analysis prompt → paste into Claude.ai for file improvements |
 | `claude-init --version` | `-v` | Print version |
 | `claude-init --help` | `-h` | Show help |
 
@@ -455,7 +501,8 @@ Back to full speed in one message.
 2. **Fill MEMORY.md stack versions before session 1** — prevents wrong assumptions
 3. **Edit RULES.md before session 1** — your preferences, not generic defaults
 4. **Run `claude-init ck` after every session** — 30 seconds, saves 10 minutes next time
-5. **Keep FILES.md current** — 10 seconds per file, saves filesystem scanning
+5. **FILES.md is automatic** — checkpoint handles it, just answer the prompts
 6. **Start fresh sessions between phases** — don't let context bloat
 7. **Keep chat messages short** — "proceed", "approved", "fix X in Y"
 8. **Everything in files, not chat** — chat is for decisions only
+9. **Run `claude-init rf` after 3+ sessions** — closes the feedback loop, improves future projects

@@ -73,6 +73,7 @@ show_help() {
   echo "  ALIASES:"
   echo "    checkpoint → ck"
   echo "    status     → st"
+  echo "    refine     → rf"
   echo ""
 }
 
@@ -850,6 +851,184 @@ cmd_status() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
+# REFINE
+# ═══════════════════════════════════════════════════════════════════════════
+
+cmd_refine() {
+  if [ ! -d "$CLAUDE_DIR" ]; then
+    error "No .claude/ directory found. Run 'claude-init' first."
+  fi
+
+  show_banner_mini
+  bold "━━━ Refine Mode ━━━"
+  echo ""
+  echo -e "  ${DIM}Analyzes everything that happened in this project${RESET}"
+  echo -e "  ${DIM}and generates a prompt to paste into Claude.ai.${RESET}"
+  echo -e "  ${DIM}Claude returns specific improvements to each .claude/ file.${RESET}"
+  echo ""
+
+  # ── Collect stats ──
+  local session_count error_count decision_count file_count
+  session_count=$(grep -c "^### Session" "$CLAUDE_DIR/STATE.md" 2>/dev/null | head -1 | tr -d '\r\n ' || echo "0")
+  session_count=${session_count:-0}
+  error_count=$(grep -c "^### " "$CLAUDE_DIR/ERRORS.md" 2>/dev/null | head -1 | tr -d '\r\n ' || echo "0")
+  error_count=${error_count:-0}
+  decision_count=$(grep -c "^### " "$CLAUDE_DIR/MEMORY.md" 2>/dev/null | head -1 | tr -d '\r\n ' || echo "0")
+  decision_count=${decision_count:-0}
+  file_count=$(grep -c "^| " "$CLAUDE_DIR/FILES.md" 2>/dev/null | head -1 | tr -d '\r\n ' || echo "0")
+  file_count=${file_count:-0}
+
+  info "Collecting project data..."
+  echo -e "  ${DIM}Sessions: $session_count | Errors: $error_count | Decisions: $decision_count | Files: $file_count${RESET}"
+  echo ""
+
+  if [ "$session_count" -lt 2 ] 2>/dev/null; then
+    warn "Only $session_count session(s) recorded. Refine works best after 3+ sessions."
+    echo ""
+    read -rp "$(echo -e "${BOLD}Continue anyway? [y/N]:${RESET} ")" cont
+    if [[ ! "$cont" =~ ^[Yy]$ ]]; then exit 0; fi
+    echo ""
+  fi
+
+  # ── Read all .claude/ files ──
+  local agent_content state_content memory_content errors_content rules_content files_content
+  agent_content=$(cat "$CLAUDE_DIR/AGENT.md" 2>/dev/null || echo "(missing)")
+  state_content=$(cat "$CLAUDE_DIR/STATE.md" 2>/dev/null || echo "(missing)")
+  memory_content=$(cat "$CLAUDE_DIR/MEMORY.md" 2>/dev/null || echo "(missing)")
+  errors_content=$(cat "$CLAUDE_DIR/ERRORS.md" 2>/dev/null || echo "(missing)")
+  rules_content=$(cat "$CLAUDE_DIR/RULES.md" 2>/dev/null || echo "(missing)")
+  files_content=$(cat "$CLAUDE_DIR/FILES.md" 2>/dev/null || echo "(missing)")
+
+  # ── Build the refine prompt ──
+  local prompt_file="$CLAUDE_DIR/REFINE_PROMPT.md"
+
+  {
+    echo "# claude-init Refine Request"
+    echo ""
+    echo "You are analyzing the .claude/ context files of a project to identify"
+    echo "specific improvements. These files orient an AI assistant at the start"
+    echo "of each session. Suggest concrete, line-level edits based on what actually"
+    echo "happened — not generic advice."
+    echo ""
+    echo "---"
+    echo ""
+    echo "## PROJECT HISTORY"
+    echo ""
+    echo "Sessions completed: ${session_count}"
+    echo "Errors logged: ${error_count}"
+    echo "Decisions locked: ${decision_count}"
+    echo "Files tracked: ${file_count}"
+    echo ""
+    echo "---"
+    echo ""
+    echo "## CURRENT .claude/ FILES"
+    echo ""
+    echo "### AGENT.md"
+    printf '```\n'
+    echo "$agent_content"
+    printf '```\n'
+    echo ""
+    echo "### STATE.md (full session log)"
+    printf '```\n'
+    echo "$state_content"
+    printf '```\n'
+    echo ""
+    echo "### MEMORY.md"
+    printf '```\n'
+    echo "$memory_content"
+    printf '```\n'
+    echo ""
+    echo "### ERRORS.md"
+    printf '```\n'
+    echo "$errors_content"
+    printf '```\n'
+    echo ""
+    echo "### RULES.md"
+    printf '```\n'
+    echo "$rules_content"
+    printf '```\n'
+    echo ""
+    echo "### FILES.md"
+    printf '```\n'
+    echo "$files_content"
+    printf '```\n'
+    echo ""
+    echo "---"
+    echo ""
+    echo "## YOUR TASK"
+    echo ""
+    echo "Analyze the session log, errors, and decisions. Produce a REFINEMENT REPORT."
+    echo "Be specific — quote exact lines, reference what actually happened in sessions."
+    echo ""
+    echo "### 1. AGENT.md"
+    echo "What rules should be added, tightened, or removed?"
+    echo "What patterns in the session log show drift from instructions?"
+    echo ""
+    echo "### 2. RULES.md"
+    echo "What red lines were hit or nearly hit? What should be added or cut?"
+    echo ""
+    echo "### 3. MEMORY.md"
+    echo "What decisions should be locked? What belongs in PATTERNS APPROVED/BANNED?"
+    echo ""
+    echo "### 4. ERRORS.md"
+    echo "Any recurring patterns? Prevention rules that are too weak?"
+    echo ""
+    echo "### 5. CONTEXT.md"
+    echo "Any token waste patterns visible in the session log?"
+    echo ""
+    echo "### 6. Phase structure retrospective"
+    echo "Did planned phases match what happened? How would you restructure?"
+    echo ""
+    echo "### 7. prompt.md improvements"
+    echo "What was underspecified and had to be decided mid-project?"
+    echo ""
+    echo "---"
+    echo ""
+    echo "Format each suggestion as:"
+    echo ""
+    echo "> **File:** AGENT.md"
+    echo "> **Change:** Add after TOKEN PROTOCOL section"
+    echo "> **Add:**"
+    echo "> \`\`\`"
+    echo "> [exact text]"
+    echo "> \`\`\`"
+    echo "> **Reason:** [what in the session history motivates this]"
+  } > "$prompt_file"
+
+  success "Generated → .claude/REFINE_PROMPT.md"
+  echo ""
+  bold "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo -e "  ${CYAN}NEXT STEPS:${RESET}"
+  echo ""
+  echo -e "  1. Open ${BOLD}.claude/REFINE_PROMPT.md${RESET}"
+  echo ""
+  echo -e "  2. Paste into ${BOLD}https://claude.ai/new${RESET}"
+  echo -e "     ${DIM}Fresh context — don't use an existing conversation${RESET}"
+  echo ""
+  echo -e "  3. Review suggestions, apply what makes sense"
+  echo ""
+  echo -e "  4. Run ${BOLD}claude-init ck${RESET} to log the refinement as a session"
+  echo ""
+  bold "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+
+  # Try to auto-copy to clipboard
+  if command -v pbcopy &>/dev/null; then
+    pbcopy < "$prompt_file" 2>/dev/null && success "Also copied to clipboard"
+  elif command -v xclip &>/dev/null; then
+    xclip -selection clipboard < "$prompt_file" 2>/dev/null && success "Also copied to clipboard"
+  elif command -v xsel &>/dev/null; then
+    xsel --clipboard --input < "$prompt_file" 2>/dev/null && success "Also copied to clipboard"
+  elif command -v clip.exe &>/dev/null; then
+    clip.exe < "$prompt_file" 2>/dev/null && success "Also copied to clipboard"
+  else
+    dim "  Tip (WSL): cat .claude/REFINE_PROMPT.md | clip.exe"
+  fi
+  echo ""
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
 # ARGUMENT PARSING & DISPATCH
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -861,6 +1040,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     checkpoint|ck)  COMMAND="checkpoint"; shift ;;
     status|st)      COMMAND="status"; shift ;;
+    refine|rf)      COMMAND="refine"; shift ;;
     --minimal|-m)   MINIMAL=true; shift ;;
     --force|-f)     FORCE=true; shift ;;
     --help|-h)      show_help; exit 0 ;;
@@ -873,4 +1053,5 @@ case "$COMMAND" in
   init)       cmd_init "$MINIMAL" "$FORCE" ;;
   checkpoint) cmd_checkpoint ;;
   status)     cmd_status ;;
+  refine)     cmd_refine ;;
 esac

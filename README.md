@@ -98,6 +98,7 @@ The checkpoint command asks what you completed, logs decisions, records bugs, an
 | `claude-init` | — | Generate `.claude/` scaffold |
 | `claude-init checkpoint` | `ck` | Interactive session state updater |
 | `claude-init status` | `st` | Print current project state |
+| `claude-init refine` | `rf` | Generate analysis prompt → paste into Claude.ai for improvements |
 | `claude-init --minimal` | `-m` | Lighter scaffold (4 files) |
 | `claude-init --force` | `-f` | Overwrite existing `.claude/` |
 | `claude-init --version` | `-v` | Print version |
@@ -172,10 +173,11 @@ curl -fsSL https://raw.githubusercontent.com/jhaksh-24/claude-init/main/install.
 
 - [x] Core scaffolder with 7 context files
 - [x] Cross-platform install (Arch / Ubuntu / PopOS / macOS / WSL)
-- [x] `claude-init checkpoint` — interactive state updater
-- [x] `claude-init status` — quick state view
+- [x] `claude-init checkpoint` (`ck`) — interactive state updater, auto-updates FILES.md
+- [x] `claude-init status` (`st`) — quick state view
+- [x] `claude-init refine` (`rf`) — feedback loop via Claude.ai analysis
 - [x] `--minimal` mode for lighter projects
-- [x] FILES.md — project file registry
+- [x] FILES.md — project file registry (auto-maintained via checkpoint)
 - [ ] Stack-specific AGENT.md templates (Solidity, Rust, C++, FastAPI)
 - [ ] Native Windows/PowerShell support
 - [ ] `claude-init diff` — show what changed since last checkpoint
