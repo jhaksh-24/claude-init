@@ -45,6 +45,8 @@ Works on: **Arch, Ubuntu, PopOS, macOS, WSL**
 
 ## Usage
 
+> **📖 Full walkthrough with every command and best practice: [example.md](example.md)**
+
 ### Step 1 — Write your prompt.md
 
 Go to Claude.ai or ChatGPT. Describe your project in plain english (messy is fine). Ask it to refine your idea into a structured spec. Paste the result into `prompt.md` in your project root.
