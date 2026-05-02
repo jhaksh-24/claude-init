@@ -94,7 +94,7 @@ The checkpoint command asks what you completed, logs decisions, records bugs, an
 | Command | Alias | What it does |
 |---------|-------|-------------|
 | `claude-init` | — | Generate `.claude/` scaffold |
-| `claude-init checkpoint` | `cp` | Interactive session state updater |
+| `claude-init checkpoint` | `ck` | Interactive session state updater |
 | `claude-init status` | `st` | Print current project state |
 | `claude-init --minimal` | `-m` | Lighter scaffold (4 files) |
 | `claude-init --force` | `-f` | Overwrite existing `.claude/` |

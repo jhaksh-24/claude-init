@@ -71,7 +71,7 @@ show_help() {
   echo "    --version, -v    Show version"
   echo ""
   echo "  ALIASES:"
-  echo "    checkpoint → cp"
+  echo "    checkpoint → ck"
   echo "    status     → st"
   echo ""
 }
@@ -824,7 +824,7 @@ FORCE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    checkpoint|cp)  COMMAND="checkpoint"; shift ;;
+    checkpoint|ck)  COMMAND="checkpoint"; shift ;;
     status|st)      COMMAND="status"; shift ;;
     --minimal|-m)   MINIMAL=true; shift ;;
     --force|-f)     FORCE=true; shift ;;
