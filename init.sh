@@ -683,8 +683,34 @@ cmd_checkpoint() {
   read -rp "$(echo -e "${BOLD}What was completed this session?${RESET} ")" completed
 
   # ── Files changed ──
+  local files_changed=""
+  local files_rows=""
   echo ""
-  read -rp "$(echo -e "${BOLD}Files created/changed (comma-sep, or Enter to skip):${RESET} ")" files_changed
+  read -rp "$(echo -e "${BOLD}Any files created or changed this session? [y/N]:${RESET} ")" has_files
+  if [[ "$has_files" =~ ^[Yy]$ ]] && [ -f "$CLAUDE_DIR/FILES.md" ]; then
+    echo ""
+    echo -e "  ${DIM}Enter each file one at a time. Empty path = done.${RESET}"
+    echo -e "  ${DIM}Status: 1=stable  2=wip  3=broken  4=planned${RESET}"
+    echo ""
+    local file_names_list=""
+    while true; do
+      read -rp "  $(echo -e "${CYAN}File path${RESET} (or Enter to finish): ")" fpath
+      [ -z "$fpath" ] && break
+      read -rp "  $(echo -e "${CYAN}Purpose${RESET}: ")" fpurpose
+      read -rp "  $(echo -e "${CYAN}Status${RESET} [1-4, default=2]: ")" fstatus_num
+      case "${fstatus_num:-2}" in
+        1) fstatus="🟢 stable" ;;
+        3) fstatus="🔴 broken" ;;
+        4) fstatus="⬜ planned" ;;
+        *) fstatus="🟡 wip" ;;
+      esac
+      files_rows+="| ${fpath} | ${fpurpose} | ${fstatus} |\n"
+      file_names_list+="${fpath}, "
+      echo -e "  ${GREEN}✓${RESET} Logged"
+      echo ""
+    done
+    files_changed="${file_names_list%, }"
+  fi
 
   # ── Decisions ──
   echo ""
@@ -760,12 +786,21 @@ cmd_checkpoint() {
     success "Added error to ERRORS.md"
   fi
 
-  # Append files to FILES.md
-  if [ -n "$files_changed" ] && [ -f "$CLAUDE_DIR/FILES.md" ]; then
-    local files_entry
-    files_entry=$(printf "\n**%s:** %s\n" "$(today)" "$files_changed")
-    # Append to RECENT CHANGES section
-    echo "$files_entry" >> "$CLAUDE_DIR/FILES.md"
+  # Write file rows to FILES.md
+  if [ -n "$files_rows" ] && [ -f "$CLAUDE_DIR/FILES.md" ]; then
+    local files_md="$CLAUDE_DIR/FILES.md"
+    # If the table header already exists, insert rows right after the | --- | line
+    if grep -q "^| File |" "$files_md" 2>/dev/null; then
+      # Find the separator line and append rows after the last table row
+      # We do this by appending; markdown tables accept new rows at the end
+      printf "%b" "$files_rows" >> "$files_md"
+    else
+      # No table yet — create header + rows
+      printf "\n| File | Purpose | Status |\n|------|---------|--------|\n" >> "$files_md"
+      printf "%b" "$files_rows" >> "$files_md"
+    fi
+    # Timestamped audit trail in RECENT CHANGES
+    printf "\n**%s:** %s\n" "$(today)" "$files_changed" >> "$files_md"
     success "Updated FILES.md"
   fi
 

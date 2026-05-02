@@ -214,20 +214,49 @@ When you're done working, run:
 claude-init checkpoint
 # alias: claude-init ck
 
-# Interactive prompts:
-#   Current → Phase: 1 — Foundation
+# Output:
+#   ━━━ Session Checkpoint ━━━
+#
+#   → Current → Phase: 1 — Foundation
+#
 #   New phase status (or Enter to keep): 2 — Canvas Engine
+#
 #   What was completed this session? Auth flow, room CRUD, database schema
-#   Files created/changed: src/auth/*, src/db/schema.prisma, src/rooms/api.ts
+#
+#   Any files created or changed this session? [y/N]: y
+#
+#     Enter each file one at a time. Empty path = done.
+#     Status: 1=stable  2=wip  3=broken  4=planned
+#
+#     File path (or Enter to finish): src/auth/config.ts
+#     Purpose: NextAuth GitHub OAuth config
+#     Status [1-4, default=2]: 1
+#     ✓ Logged
+#
+#     File path (or Enter to finish): src/db/schema.prisma
+#     Purpose: Database schema — users, rooms, canvas_ops
+#     Status [1-4, default=2]: 1
+#     ✓ Logged
+#
+#     File path (or Enter to finish): src/rooms/api.ts
+#     Purpose: Room CRUD API routes
+#     Status [1-4, default=2]: 1
+#     ✓ Logged
+#
+#     File path (or Enter to finish):   ← (empty = done)
+#
 #   Lock in a decision? [y/N]: y
 #     Decision title: CRDT Library Choice
 #     What was decided: Yjs over Automerge
 #     Why: Better binary encoding, smaller wire format, active maintenance
+#
 #   Log a bug or mistake? [y/N]: n
+#
 #   What should next session start with? Canvas rendering engine with Yjs integration
 #
 #   ✓ Updated STATE.md
 #   ✓ Added decision to MEMORY.md
+#   ✓ Updated FILES.md
 #   ✓ Checkpoint saved — session 1
 ```
 
@@ -284,7 +313,9 @@ claude-init status
 
 ## 9. Maintaining FILES.md
 
-This one is manual — update it as you create files. Takes 10 seconds.
+**This is now handled automatically by `claude-init ck`.** At the end of every session, checkpoint walks you through each file you created or changed and writes the table rows for you.
+
+What gets written into FILES.md after a checkpoint:
 
 ```markdown
 ## FILE REGISTRY
