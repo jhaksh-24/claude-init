@@ -1,28 +1,31 @@
 # prompt.md
 # Fill this BEFORE running claude-init.
-# Write your idea in plain english — messy is fine.
-# Then go to Claude.ai or ChatGPT and ask it to refine this into a proper spec.
-# Paste the refined version here. Then run claude-init.
+# Write your idea — messy is fine. Use Claude.ai / ChatGPT to refine it.
+# The more structured this is, the less tokens wasted later.
 
 ---
 
 ## Project
-[what you are building — 2-3 sentences]
+[what you're building — 2-3 sentences, be specific]
 
 ## Stack
-[languages, frameworks, databases, infra]
+[be exact — language version, framework, database, deploy target]
+[example: Python 3.12, FastAPI, PostgreSQL 16, SQLAlchemy (raw), Docker → Railway]
 
 ## Goal
-[what "done" looks like — demo, deployed, tested, submitted]
+[what "done" looks like — demo? deployed? tested? submitted?]
 
 ## Constraints
-[hackathon time limit / team size / must-use technologies / judging criteria]
+[time limit / team size / must-use tech / judging criteria / budget]
 
-## Phases (rough idea — Claude will structure these properly)
-[if you have a sense of the build order, write it here. if not, leave blank]
+## Phases (rough — Claude will structure these)
+[if you have a build order in mind, write it. if not, leave blank — Claude proposes]
 
-## Non-negotiables
-[things you will not compromise on — security, performance, specific libraries]
+## Non-Negotiables
+[things you won't compromise on — performance targets, security requirements, specific libraries]
 
-## What I am NOT building
-[explicitly out of scope — helps Claude not speculate]
+## Out of Scope
+[explicitly NOT building — stops Claude from speculating into these areas]
+
+## Context
+[anything else Claude should know — prior art, inspiration, domain knowledge, team skills]
